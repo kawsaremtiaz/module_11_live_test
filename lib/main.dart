@@ -1,68 +1,119 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(const MyApp());
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class Weather {
+  final String city;
+  final int temperature;
+  final String condition;
+  final int humidity;
+  final double windSpeed;
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+  Weather({
+    required this.city,
+    required this.temperature,
+    required this.condition,
+    required this.humidity,
+    required this.windSpeed,
+  });
+
+  factory Weather.fromJson(Map<String, dynamic> json) {
+    return Weather(
+      city: json['city'],
+      temperature: json['temperature'],
+      condition: json['condition'],
+      humidity: json['humidity'],
+      windSpeed: json['windSpeed'].toDouble(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class MyApp extends StatelessWidget {
+  final String jsonData = '''
+    [
+      {
+        "city": "New York",
+        "temperature": 20,
+        "condition": "Clear",
+        "humidity": 60,
+        "windSpeed": 5.5
+      },
+      {
+        "city": "Los Angeles",
+        "temperature": 25,
+        "condition": "Sunny",
+        "humidity": 50,
+        "windSpeed": 6.8
+      },
+      {
+        "city": "London",
+        "temperature": 15,
+        "condition": "Partly Cloudy",
+        "humidity": 70,
+        "windSpeed": 4.2
+      },
+      {
+        "city": "Tokyo",
+        "temperature": 28,
+        "condition": "Rainy",
+        "humidity": 75,
+        "windSpeed": 8.0
+      },
+      {
+        "city": "Sydney",
+        "temperature": 22,
+        "condition": "Cloudy",
+        "humidity": 55,
+        "windSpeed": 7.3
+      }
+    ]
+  ''';
 
-  final String title;
+  const MyApp({super.key});
 
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  List<Weather> _parseWeatherData(String jsonString) {
+    final List<dynamic> decoded = json.decode(jsonString);
+    return decoded.map((dynamic json) => Weather.fromJson(json)).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+    List<Weather> weatherData = _parseWeatherData(jsonData);
+
+    return MaterialApp(
+      title: 'Weather App',
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Weather Info App'),
+          backgroundColor: Colors.cyan,
+          centerTitle: false,
+          titleTextStyle: const TextStyle(color: Colors.white, fontSize: 24),
+        ),
+        body: ListView.builder(
+          itemCount: weatherData.length,
+          itemBuilder: (context, index) {
+            Weather weather = weatherData[index];
+            return Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: Card(
+                child: ListTile(
+                  title: Text(weather.city),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Temperature: ${weather.temperature}°C'),
+                      Text('Condition: ${weather.condition}'),
+                      Text('Humidity: ${weather.humidity}%'),
+                      Text('Wind Speed: ${weather.windSpeed} m/s'),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
